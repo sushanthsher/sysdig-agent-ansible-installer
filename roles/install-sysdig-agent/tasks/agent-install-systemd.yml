@@ -1,0 +1,31 @@
+---
+- name: Install prerequisites for Debian based distributions
+  become: true
+  apt:
+    name: linux-headers-{{ ansible_kernel }}
+    state: present
+  when: ansible_os_family|lower == 'debian'
+
+- name: Install prerequisites for RHEL based distributions
+  become: true
+  yum:
+    name: kernel-devel-{{ ansible_kernel }}
+    state: present
+  when: ansible_os_family|lower == 'redhat'
+
+- name: Check if sysdig agent is already installed and running
+  service:
+    name: dragent
+    state: started
+  register: dragent_state
+  ignore_errors: yes
+  become: true 
+
+- name: Install agent as systemd daemon
+  shell: |
+    curl -s https://download.sysdig.com/stable/install-agent | sudo bash -s -- \
+      --access_key {{ sysdig_access_key }} \
+      --collector {{ sysdig_collector }} \
+      --collector_port {{ sysdig_collector_port }} 
+  changed_when: false
+  when: dragent_state.failed

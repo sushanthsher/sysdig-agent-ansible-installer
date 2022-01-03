@@ -1,0 +1,22 @@
+---
+# Example file, remember to change the values to match your needs!
+# General sysdig-agent section
+sysdig_collector: collector.sysdigcloud.com
+sysdig_collector_port: 6443
+cluster_name: example-4
+agent_version: latest
+sysdig_agent_namespace: sysdig-agent
+kube_config_path: /home/myansibleuser/.kube/config
+# Resources needed are subjective to the actual workload.
+# Please refer to Sysdig Support for more info.
+# See also: https://docs.sysdig.com/en/tuning-sysdig-agent.html
+resources_requests_cpu: 1000m
+resources_requests_memory: 1024Mi
+resources_limits_cpu: 1000m
+resources_limits_memory: 1024Mi
+ansible_user: myansibleuser
+# Node Image Analyzer section
+nia_enabled: True
+nia_version: latest
+nia_api_endpoint: https://secure.sysdig.com
+nia_collector_endpoint: https://collector-static.sysdigcloud.com/internal/scanning/scanning-analysis-collector

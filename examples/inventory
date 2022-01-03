@@ -1,0 +1,34 @@
+#   - Comments begin with the '#' character
+#   - Blank lines are ignored
+#   - Groups of hosts are delimited by [header] elements
+#   - You can enter hostnames or ip addresses
+
+[cluster1]
+host1
+
+[cluster2]
+host2
+host3
+
+[cluster3]
+host4
+host5
+
+[cluster4]
+host6
+
+# clusters with docker installation
+[docker:children]
+cluster2
+
+# clusters with systemd installation
+[systemd:children]
+cluster3
+
+# clusters with k8s installation
+[k8s:children]
+cluster1
+
+# clusters with ocp installation
+[ocp:children]
+cluster4

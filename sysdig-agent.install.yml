@@ -1,0 +1,7 @@
+---
+- name: Sysdig Installation
+  hosts: systemd,docker,k8s,ocp
+  vars_files:
+    - vaultfile.yaml
+  roles:
+    - install-sysdig-agent

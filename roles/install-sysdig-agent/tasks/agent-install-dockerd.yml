@@ -1,0 +1,55 @@
+---
+- name: Install prerequisites for Debian based distributions
+  become: true
+  apt:
+    name: python3-pip
+    state: present
+  when: ansible_os_family|lower == 'debian'
+
+- name: Install prerequisites for RHEL based distributions
+  become: true
+  yum:
+    name: python3-pip
+    state: present
+  when: ansible_os_family|lower == 'redhat'
+
+- name: Install PIP prerequisites
+  pip:
+    name: docker==5.0.3
+
+- name: Install agent as Docker container
+  docker_container:
+    name: sysdig-agent
+    image: "sysdig/agent:{{ agent_version }}"
+    detach: yes
+    privileged: yes
+    restart_policy: always
+    pid_mode: host
+    shm_size: 512m
+    networks:
+    -  name: host
+    env:
+     ACCESS_KEY: "{{ sysdig_access_key }}"
+     COLLECTOR: "{{ sysdig_collector }}"
+    volumes:
+    - /var/run/docker.sock:/host/var/run/docker.sock
+    - /dev:/host/dev
+    - /proc:/host/proc:ro
+    - /boot:/host/boot:ro
+    - /lib/modules:/host/lib/modules:ro
+    - /usr:/host/usr:ro
+
+- name: Install Node Image Analyzer as Docker container
+  docker_container:
+    name: node-image-analyzer
+    image: "quay.io/sysdig/node-image-analyzer:{{ nia_version }}"
+    detach: yes
+    privileged: yes
+    networks:
+    -  name: host
+    volumes:
+    - /var/run:/var/run
+    env:
+      AM_COLLECTOR_ENDPOINT: "{{ nia_collector_endpoint }}"
+      ACCESS_KEY: "{{ sysdig_access_key }}"
+  when: nia_enabled

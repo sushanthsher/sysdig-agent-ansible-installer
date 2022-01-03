@@ -1,0 +1,17 @@
+---
+
+- name: Install agent as Docker container
+  include_tasks: agent-install-dockerd.yml
+  when: ('docker' in group_names)
+
+- name: Install agent on K8S
+  include_tasks: agent-install-k8s.yml
+  when: ('k8s' in group_names)
+
+- name: Install agent as Systemd daemon
+  include_tasks: agent-install-systemd.yml
+  when: ('systemd' in group_names)
+
+- name: Install agent on OCP cluster
+  include_tasks: agent-install-ocp.yml
+  when: ('ocp' in group_names)

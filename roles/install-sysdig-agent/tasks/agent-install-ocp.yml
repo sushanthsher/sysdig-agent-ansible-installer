@@ -1,0 +1,85 @@
+---
+- name: Install prerequisites for Debian based distributions
+  become: true
+  apt:
+    name: linux-headers-{{ ansible_kernel }}
+    state: present
+  when: ansible_os_family|lower == 'debian'
+
+- name: Install prerequisites for RHEL based distributions
+  become: true
+  yum:
+    name: kernel-devel-{{ ansible_kernel }}
+    state: present
+  when: ansible_os_family|lower == 'redhat'
+
+- name: Create {{ sysdig_agent_namespace }} namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ sysdig_agent_namespace }}"
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+
+- name: Create Service Account for sysdig agent
+  kubernetes.core.k8s:
+    kind: ServiceAccount
+    name: sysdig-agent
+    namespace: "{{ sysdig_agent_namespace }}"
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+
+- name: Create RoleBinding for privileged scc for sysdig-agent account
+  kubernetes.core.k8s:
+    kind: RoleBinding
+    name:  system:openshift:scc:privileged
+    namespace: "{{ sysdig_agent_namespace }}"
+    resource_definition: "{{ lookup('template', 'sysdig-agent-privileged-rolebinding.yaml.j2')}}"
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+
+- name: Add scc privileged to service account sysdig-agent
+  shell: oc adm policy add-scc-to-user privileged system:serviceaccount:{{ sysdig_agent_namespace }}:sysdig-agent
+  changed_when: false
+
+- name: Create ClusterRoleBinding for cluster-reader for sysdig-agent account
+  kubernetes.core.k8s:
+    kind: ClusterRoleBinding
+    name:  cluster-reader
+    namespace: "{{ sysdig_agent_namespace }}"
+    resource_definition: "{{ lookup('template', 'cluster-reader-sysdig-agent-clusterrolebinding.yaml.j2')}}"
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+
+- name: Create secret for sysdig-agent
+  kubernetes.core.k8s:
+    kind: Secret
+    name: sysdig-agent
+    namespace: "{{ sysdig_agent_namespace }}"
+    resource_definition: "{{ lookup('template', 'sysdig-agent-secret.yaml.j2')}}"
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+
+- name: Configure agent configmap, service and daemonset
+  kubernetes.core.k8s:
+    resource_definition: "{{ lookup('template', '{{ item }}.yaml.j2')}}"
+    namespace: "{{ sysdig_agent_namespace }}"
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+  loop:
+    - sysdig-agent-configmap
+    - sysdig-agent-service
+    - sysdig-agent-daemonset-v2
+
+- name: Configure NIA configmap and daemonset
+  kubernetes.core.k8s:
+    resource_definition: "{{ lookup('template', '{{ item }}.yaml.j2')}}"
+    namespace: "{{ sysdig_agent_namespace }}"
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+  loop:
+    - sysdig-node-image-analyzer-configmap
+    - sysdig-node-image-analyzer-daemonset
+    - sysdig-node-benchmark-runner-configmap
+    - sysdig-node-host-analyzer-configmap
+  when: nia_enabled
