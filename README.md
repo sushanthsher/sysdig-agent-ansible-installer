@@ -1,4 +1,8 @@
-# Ansible Sysdig agent installer 
+# Ansible Sysdig agent installer
+## Credits
+This project took inspiration from the following official sysdig repository: https://github.com/draios/partners/tree/main/Tools/ansible-agent
+Many thanks to @dtaracks for the work done.
+
 ## What it can do
 You can use this tool to install Sysdig-Agent on multiple clusters, hosts and systems like:
 - Kubernetes
