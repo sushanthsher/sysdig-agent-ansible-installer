@@ -146,8 +146,3 @@ At this point you can start the installation process simply by running:
 ```bash
 ansible-playbook sysdig-agent.install.yml --vault-password-file=secret.txt
 ```
-## Contacts
-If you have questions or suggestions feel free to contact us:
-
-- ivan.villa@vistatech.it
-- daniel.gessaghi@vistatech.it
